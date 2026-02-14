@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 播客生成器</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎙️ AI 播客生成器</h1>
+            <p>输入内容 → 生成脚本 → 生成音频</p>
+        </header>
+
+        <div class="three-columns">
+            <!-- 左栏：输入内容 -->
+            <div class="column" id="input-section">
+                <div class="column-header">
+                    <h2>📝 输入内容</h2>
+                    <span class="step-badge">步骤 1</span>
+                </div>
+
+                <div class="column-content">
+                    <!-- 输入方式选择 -->
+                    <div class="input-type-selector">
+                        <label>
+                            <input type="radio" name="inputType" value="text" checked>
+                            文本
+                        </label>
+                        <label>
+                            <input type="radio" name="inputType" value="url">
+                            网址
+                        </label>
+                        <label>
+                            <input type="radio" name="inputType" value="document">
+                            文档上传
+                        </label>
+                    </div>
+
+                    <!-- 文本输入 -->
+                    <div class="input-group" id="text-input-group">
+                        <textarea
+                            id="content-textarea"
+                            placeholder="在此输入要转换成播客的内容..."
+                            rows="8"></textarea>
+                    </div>
+
+                    <!-- 网址输入 -->
+                    <div class="input-group" id="url-input-group" style="display: none;">
+                        <input
+                            type="url"
+                            id="url-input"
+                            placeholder="请输入网址..."
+                            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                        <button class="btn-secondary" id="analyze-url-btn">🔍 分析网址</button>
+                    </div>
+
+                    <!-- 文档上传 -->
+                    <div class="input-group" id="document-input-group" style="display: none;">
+                        <div class="file-upload" id="file-drop-zone">
+                            <input type="file" id="file-input" accept=".docx,.pdf">
+                            <label for="file-input">
+                                <span class="upload-icon">📁</span>
+                                <span class="upload-text">点击或拖拽上传文档</span>
+                                <span class="upload-hint">支持 DOCX、PDF 格式</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 内容预览 -->
+                    <div class="content-preview" id="content-preview" style="display: none;">
+                        <h3>📄 内容预览</h3>
+                        <div id="preview-text"></div>
+                    </div>
+
+                    <!-- 时长设置 -->
+                    <div class="input-group">
+                        <label>播客时长（分钟）:</label>
+                        <input
+                            type="range"
+                            id="duration-slider"
+                            min="3"
+                            max="30"
+                            value="5"
+                            step="1">
+                        <span id="duration-value">5</span> 分钟
+                    </div>
+
+                    <!-- 主题输入（可选） -->
+                    <div class="input-group">
+                        <label>主题（可选）:</label>
+                        <input
+                            type="text"
+                            id="theme-input"
+                            placeholder="如果不填写，系统会自动提取主题"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                    </div>
+
+                    <!-- 生成脚本按钮 -->
+                    <button class="btn-primary" id="generate-script-btn">
+                        ✨ 生成脚本
+                    </button>
+                </div>
+            </div>
+
+            <!-- 中栏：生成脚本 -->
+            <div class="column" id="script-section">
+                <div class="column-header">
+                    <h2>📋 生成脚本</h2>
+                    <span class="step-badge">步骤 2</span>
+                </div>
+
+                <div class="column-content">
+                    <div id="script-loading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>正在生成脚本，请稍候...</p>
+                    </div>
+
+                    <div id="script-result" style="display: none;">
+                        <div class="result-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">主题:</span>
+                                <span id="script-theme" class="meta-value"></span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">时长:</span>
+                                <span id="script-duration" class="meta-value"></span>
+                            </div>
+                        </div>
+
+                        <div class="script-editor">
+                            <textarea
+                                id="script-editor-textarea"
+                                rows="12"></textarea>
+                        </div>
+
+                        <div class="script-actions">
+                            <button class="btn-secondary" id="regenerate-script-btn">
+                                🔄 重新生成
+                            </button>
+                            <button class="btn-primary" id="generate-audio-btn">
+                                🎵 生成音频
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="script-empty" class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <p>请在左侧输入内容后点击"生成脚本"</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右栏：生成音频 -->
+            <div class="column" id="audio-section">
+                <div class="column-header">
+                    <h2>🎵 生成音频</h2>
+                    <span class="step-badge">步骤 3</span>
+                </div>
+
+                <div class="column-content">
+                    <div id="audio-loading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p id="audio-progress-text">正在生成音频，请稍候...</p>
+                    </div>
+
+                    <div id="audio-result" style="display: none;">
+                        <div class="result-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">对话数:</span>
+                                <span id="audio-dialogue-count" class="meta-value"></span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">时长:</span>
+                                <span id="audio-duration" class="meta-value"></span>
+                            </div>
+                        </div>
+
+                        <div class="audio-player">
+                            <audio id="audio-element" controls>
+                                您的浏览器不支持音频播放
+                            </audio>
+                        </div>
+
+                        <div class="audio-actions">
+                            <button class="btn-secondary" id="download-audio-btn">
+                                ⬇️ 下载音频
+                            </button>
+                            <button class="btn-secondary" id="start-over-btn">
+                                🔄 重新开始
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="audio-empty" class="empty-state">
+                        <div class="empty-icon">🎵</div>
+                        <p>请在中间栏生成脚本后点击"生成音频"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div id="toast" class="toast"></div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
