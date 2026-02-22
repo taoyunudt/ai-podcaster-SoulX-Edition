@@ -93,9 +93,15 @@ async def startup_event():
 @app.get("/")
 async def root():
     """重定向到前端页面"""
+    index_path = os.path.join(static_dir, "index_pro.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    
+    # 如果 Pro 版不存在，回退到原版
     index_path = os.path.join(static_dir, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
+    
     return {"message": "AI 播客生成器 API"}
 
 
@@ -114,7 +120,8 @@ async def health():
         "status": "healthy",
         "versions": {
             "standard": "1.0.0",
-            "soulx": "1.0.0"
+            "soulx": "1.0.0",
+            "pro": "1.0.0"
         }
     }
 
@@ -296,6 +303,251 @@ async def get_audio(filename: str):
         media_type="audio/mpeg",
         filename=filename
     )
+
+
+class LLMScriptRequest(BaseModel):
+    """LLM API 脚本生成请求"""
+    api_key: str
+    model: str = "qwen-turbo"
+    content: str
+    theme: Optional[str] = None
+    duration_minutes: int = 5
+    temperature: float = 0.7
+    max_tokens: int = 2000
+
+
+@app.post("/api/llm/generate/script", response_model=dict)
+async def llm_generate_script(request: LLMScriptRequest):
+    """
+    使用第三方 LLM API 生成播客脚本
+    
+    支持自定义 LLM API（需要在 config.py 中配置）
+    """
+    try:
+        info(f"📝 收到 LLM 脚本生成请求")
+        
+        # 构造 LLM API 提示
+        theme = request.theme or doc_analyzer.extract_theme(request.content)
+        
+        system_prompt = """你是一位专业的播客主持人和嘉宾。请根据提供的主题和内容，生成一段自然、流畅的对话式播客脚本。
+
+要求：
+1. 生成 2 个角色的对话：主持人（智小宝）和嘉宾（智初）
+2. 对话时长约 {duration_minutes} 分钟
+3. 使用自然、口语化的中文表达
+4. 适当添加语气词和情感标记：<|laughter|> 笑声，<|sigh|> 叹气
+5. 保持对话的连贯性和吸引力
+6. 每段对话不宜过长，保持自然的节奏
+
+格式：
+[S1] 主持人的台词
+[S2] 嘉宾的台词
+...（重复对话）
+""".format(duration_minutes=request.duration_minutes)
+        
+        user_prompt = f"""
+主题：{theme}
+
+参考内容：
+{request.content}
+
+请根据以上信息生成播客脚本。
+"""
+        
+        # 检查是否配置了 LLM API（使用阿里云通义千问）
+        if not DASHSCOPE_API_KEY or DASHSCOPE_API_KEY == "your_dashscope_api_key_here":
+            raise HTTPException(
+                status_code=500, 
+                detail="未配置 LLM API 密钥。请在 config.py 中设置 DASHSCOPE_API_KEY。"
+            )
+        
+        # 调用通义千问 API
+        headers = {
+            "Authorization": f"Bearer {DASHSCOPE_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "model": request.model,
+            "input": {
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": system_prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": user_prompt
+                    }
+                ]
+            },
+            "parameters": {
+                "temperature": request.temperature,
+                "max_tokens": request.max_tokens
+            }
+        }
+        
+        info(f"🤖 调用 LLM API 生成脚本...")
+        
+        response = requests.post(
+            "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+        
+        response.raise_for_status()
+        result = response.json()
+        
+        # 提取生成的脚本
+        if result.get("output") and result["output"].get("text"):
+            script = result["output"]["text"].strip()
+            
+            # 格式化脚本为对话格式
+            formatted_script = script.replace("\n\n", "\n")
+            
+            info(f"✅ LLM 脚本生成成功，长度: {len(formatted_script)} 字符")
+            
+            return {
+                "success": True,
+                "script": formatted_script,
+                "theme": theme,
+                "duration_minutes": request.duration_minutes,
+                "model": request.model,
+                "tokens_used": result.get("usage", {}).get("total_tokens", 0)
+            }
+        else:
+            raise HTTPException(status_code=500, detail="LLM API 返回格式错误")
+
+    except requests.exceptions.RequestException as e:
+        error(f"❌ LLM API 调用失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"LLM API 调用失败: {str(e)}")
+    except Exception as e:
+        error(f"❌ 脚本生成失败: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"脚本生成失败: {str(e)}")
+
+
+# 添加一个统一的脚本生成端点（兼容旧版和新版）
+@app.post("/api/generate/script", response_model=ScriptResponse)
+async def generate_script_v2(request: ScriptGenerationRequest):
+    """
+    增强的播客脚本生成
+    
+    支持两种模式：
+    1. 旧模式（内部模板生成）- 无需 API 密钥
+    2. 新模式（LLM API 生成）- 需要配置 DASHSCOPE_API_KEY
+    """
+    try:
+        info(f"📝 收到脚本生成请求 (模式: {request.input_type})")
+        
+        # 检查是否配置了 LLM API
+        use_llm = (DASHSCOPE_API_KEY and DASHSCOPE_API_KEY != "your_dashscope_api_key_here")
+        
+        if use_llm:
+            # 使用 LLM API 生成
+            llm_request = LLMScriptRequest(
+                api_key=DASHSCOPE_API_KEY,
+                content=request.content,
+                theme=request.theme,
+                duration_minutes=request.duration_minutes,
+                temperature=0.7,
+                max_tokens=2000
+            )
+            
+            info("🤖 使用 LLM API 生成脚本...")
+            
+            try:
+                llm_response = await llm_generate_script(llm_request)
+                
+                if llm_response["success"]:
+                    return {
+                        "success": True,
+                        "script": llm_response["script"],
+                        "dialogue": parse_dialogue(llm_response["script"]),
+                        "theme": llm_response["theme"],
+                        "duration_minutes": request.duration_minutes,
+                        "estimated_duration": llm_response["duration_minutes"] * 60,
+                        "model": llm_response["model"],
+                        "mode": "llm_api"
+                    }
+            except HTTPException as e:
+                # 如果 LLM API 失败，回退到内部模板
+                info(f"⚠️ LLM API 失败，回退到内部模板: {e.detail}")
+                use_llm = False
+        
+        # 回退到内部模板生成（无需 API）
+        if not use_llm:
+            info("📝 使用内部模板生成脚本...")
+            
+            if not request.theme:
+                theme = doc_analyzer.extract_theme(request.content)
+                info(f"🎯 提取的主题: {theme}")
+            else:
+                theme = request.theme
+            
+            # 生成脚本
+            result = generate_podcast_script(theme, request.duration_minutes)
+            
+            if result['success']:
+                return {
+                    "success": True,
+                    "script": result['script'],
+                    "dialogue": result['dialogue'],
+                    "theme": theme,
+                    "duration_minutes": request.duration_minutes,
+                    "estimated_duration": result['estimated_duration'],
+                    "mode": "internal_template"
+                }
+            else:
+                raise HTTPException(status_code=500, detail=result.get('error', '脚本生成失败'))
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error(f"❌ 脚本生成失败: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"生成失败: {str(e)}")
+
+
+def parse_dialogue(script: str) -> list:
+    """解析脚本为对话列表"""
+    dialogue = []
+    current_speaker = None
+    current_text = ""
+    
+    for line in script.split('\n'):
+        line = line.strip()
+        if not line:
+            continue
+        
+        # 检测说话人标记
+        speaker_match = line.match(r'^\[S(\d+)\](.+)$')
+        if speaker_match:
+            # 保存之前的对话
+            if current_speaker and current_text:
+                dialogue.append({
+                    "speaker": f"S{current_speaker}",
+                    "text": current_text.strip()
+                })
+            
+            current_speaker = int(speaker_match.group(1))
+            current_text = speaker_match.group(2).strip()
+        else:
+            # 继续当前对话
+            if line:
+                current_text += " " + line
+    
+    # 保存最后一段对话
+    if current_speaker and current_text:
+        dialogue.append({
+            "speaker": f"S{current_speaker}",
+            "text": current_text.strip()
+        })
+    
+    return dialogue
 
 
 if __name__ == "__main__":
