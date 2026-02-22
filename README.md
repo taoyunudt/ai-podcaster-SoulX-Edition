@@ -1,153 +1,72 @@
-# AI 播客生成器 🎙️
-
-一个基于人工智能的播客生成工具，可以根据文本、网址或文档自动生成高质量的播客音频。
+# AI 播客生成器 - SoulX Edition
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Python](https://img.shields.io/badge/python-3.9+-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 
-## ✨ 功能特性
+基于 SoulX-Podcast 的 AI 播客生成器，支持零样本声音克隆和高保真音频生成。
 
-- 📝 **多种输入方式**：支持文本输入、网址自动抓取、DOCX/PDF 文档上传
-- 🤖 **智能脚本生成**：基于通义千问大模型自动生成对话式播客脚本
-- 🎙️ **高质量 TTS 语音合成**：使用千问 TTS 引擎生成自然流畅的语音
-- 🎵 **智能音频合成**：自动合并多段对话，添加静音间隔和音量调整
-- 🎨 **现代化 Web 界面**：三栏响应式布局，操作直观简单
-- 📱 **全平台支持**：支持桌面端、平板和移动设备访问
+## ✨ 核心功能
 
-## 📁 项目结构
+### 🎤 零样本声音克隆
+- **快速克隆**：只需上传 5-30 秒参考音频即可克隆声音
+- **多说话人**：支持最多 4 个不同的说话人
+- **文本对齐**：提供准确的参考文本，提高克隆质量
+- **实时预览**：上传后立即播放和验证
 
-```
-ai-podcaster/
-├── api_server.py              # FastAPI 后端服务主文件
-├── generator.py               # 对话生成器模块
-├── tts_qwen3.py              # 千问 TTS 语音合成引擎
-├── merger_advanced.py        # 音频合并模块（高级版）
-├── merger_simple.py          # 音频合并模块（简化版）
-├── script_generator.py       # 播客脚本生成器
-├── config.py                # 配置文件（包含 API 密钥，不提交到 Git）
-├── config.example.py        # 配置文件示例
-├── main.py                  # 命令行入口
-│
-├── static/                   # 前端静态文件目录
-│   ├── index.html           # 主页面（三栏布局）
-│   ├── css/
-│   │   └── style.css        # 样式文件
-│   └── js/
-│       └── app.js           # 前端交互逻辑
-│
-├── utils/                    # 工具模块目录
-│   ├── document_analyzer.py # 文档分析器（网址、Word、PDF）
-│   ├── file_utils.py        # 文件工具函数
-│   └── log_utils.py         # 日志工具
-│
-├── audio/                    # 生成的临时音频文件
-├── output/                   # 最终输出的播客音频
-├── logs/                     # 日志文件
-├── requirements.txt         # Python 依赖清单
-├── .gitignore             # Git 忽略配置
-├── FRONTEND_README.md      # 前端使用指南
-└── README.md               # 项目说明文档（本文件）
-```
+### 🎵 高保真音频生成
+- **1.7B 模型**：使用 SoulX-Podcast 开源模型
+- **自然流畅**：生成播客风格的自然对话音频
+- **方言支持**：支持普通话、四川话、河南话、粤语
+- **情感标记**：支持 `<|laughter|>`、`<|sigh|>` 等副语言标记
 
-## 🚀 功能模块详解
+### 📝 脚本编辑器
+- **简单易用**：直观的三栏布局
+- **说话人标记**：使用 `[S1]`、`[S2]` 等标记不同说话人
+- **情感标记**：支持笑声、叹气等情感表达
+- **快速模板**：一键生成播客开场脚本
 
-### 1. API 服务（api_server.py）
+### 🔧 参数调优
+- **随机种子**：控制生成随机性
+- **温度**：调整生成多样性（0.1-2.0）
+- **Top-K**：限制采样词数（1-500）
+- **Top-P**：核采样参数（0.0-1.0）
 
-FastAPI 后端服务，提供 RESTful API：
+## 🚀 快速开始
 
-| 端点 | 方法 | 说明 |
-|------|------|------|
-| `/` | GET | 前端页面 |
-| `/health` | GET | 健康检查 |
-| `/api/analyze/url` | POST | 分析网址内容 |
-| `/api/analyze/document` | POST | 分析上传的文档 |
-| `/api/generate/script` | POST | 生成播客脚本 |
-| `/api/generate/audio` | POST | 根据脚本生成音频 |
-| `/api/audio/{filename}` | GET | 获取生成的音频文件 |
+### 前置条件
 
-### 2. 脚本生成器（script_generator.py）
-
-基于通义千问大模型生成对话式播客脚本：
-- 支持自定义播客时长（3-30 分钟）
-- 自动提取主题或使用指定主题
-- 生成主持人（智小宝）和嘉宾（智初）的对话
-- 使用 Markdown 格式，易于阅读和编辑
-
-### 3. TTS 引擎（tts_qwen3.py）
-
-千问 TTS 语音合成引擎：
-- 支持多种说话人声音
-- 可调节语速、音量、采样率
-- 支持实时流式输出
-- 高质量自然语音
-
-### 4. 音频合并（merger_advanced.py）
-
-高级音频合并功能：
-- 自动添加对话间隔静音
-- 音量标准化处理
-- 支持 MP3、WAV 等多种格式
-- 可调节比特率和采样率
-
-### 5. 文档分析器（utils/document_analyzer.py）
-
-支持多种输入源：
-- **网址**：自动抓取网页内容并提取文本
-- **Word 文档**：读取 .docx 文件内容
-- **PDF 文档**：读取 .pdf 文件内容
-- 自动提取主题和摘要
-
-### 6. 前端界面（static/）
-
-现代化三栏布局：
-- **左栏**：内容输入区（文本/网址/文档）
-- **中栏**：脚本生成和编辑区
-- **右栏**：音频生成和播放区
-- 响应式设计，支持各种设备
-
-## 🔧 部署条件
-
-### 系统要求
-
+#### 系统要求
 - **操作系统**：macOS / Linux / Windows
-- **Python 版本**：Python 3.9 或更高版本
-- **内存**：建议 4GB 以上
-- **磁盘空间**：建议 2GB 以上
+- **Python 版本**：Python 3.9 或更高
+- **内存**：建议 16GB 以上
+- **磁盘空间**：至少 10GB
 
-### 必需的 API 密钥
+#### 必需软件
+- **FFmpeg**（音频处理）
+  ```bash
+  # macOS
+  brew install ffmpeg
+  
+  # Ubuntu/Debian
+  sudo apt install ffmpeg
+  ```
 
-本项目需要以下阿里云 API 服务：
+- **SoulX-Podcast**（音频生成引擎）
+  ```bash
+  git clone https://github.com/Soul-AILab/SoulX-Podcast.git
+  cd SoulX-Podcast
+  ```
 
-1. **通义千问 API**（用于生成脚本和对话）
-   - 获取地址：https://dashscope.console.aliyun.com/
-   - 需要申请：DashScope API Key
-
-2. **千问 TTS API**（用于语音合成）
-   - 获取地址：https://nls-portal.console.aliyun.com/
-   - 需要申请：TTS AppKey
-   - 需要申请：AccessKey ID 和 AccessKey Secret
-
-### 依赖软件
-
-- **FFmpeg**（音频处理必需）
-  - macOS: `brew install ffmpeg`
-  - Ubuntu/Debian: `sudo apt install ffmpeg`
-  - Windows: 下载安装包或使用 choco
-
-## 📦 部署流程
-
-### 方式一：本地部署（推荐）
+### 部署步骤
 
 #### 1. 克隆项目
-
 ```bash
-git clone https://github.com/taoyunudt/ai-podcaster.git
-cd ai-podcaster
+git clone https://github.com/taoyunudt/ai-podcaster-SoulX-Edition.git
+cd ai-podcaster-SoulX-Edition
 ```
 
-#### 2. 创建虚拟环境（可选但推荐）
-
+#### 2. 创建虚拟环境
 ```bash
 python3 -m venv venv
 source venv/bin/activate  # macOS/Linux
@@ -156,285 +75,239 @@ venv\Scripts\activate     # Windows
 ```
 
 #### 3. 安装依赖
-
 ```bash
 pip install -r requirements.txt
 ```
 
-#### 4. 配置 API 密钥
+#### 4. 配置 SoulX-Podcast
+
+**注意**：本项目需要 SoulX-Podcast 作为音频生成引擎。
 
 ```bash
-# 复制配置文件示例
-cp config.example.py config.py
+# 在 SoulX-Podcast 目录下
+cd ~/projects/SoulX-Podcast
 
-# 编辑 config.py，填入你的 API 密钥
-# 需要填入以下四个密钥：
-# - DASHSCOPE_API_KEY
-# - TTS_APPKEY
-# - ALI_ACCESS_KEY_ID
-# - ALI_ACCESS_KEY_SECRET
-```
+# 安装 SoulX-Podcast 依赖
+python3.11 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 
-**config.py 配置示例：**
-
-```python
-# 阿里云百炼 API Key（用于生成对话）
-DASHSCOPE_API_KEY = "sk-xxxxxxxxxxxxxxxx"
-
-# 阿里云语音合成 AppKey（用于生成语音）
-TTS_APPKEY = "xxxxxxxxxxxxxx"
-
-# 阿里云 AccessKey（用于TTS API调用）
-ALI_ACCESS_KEY_ID = "LTAI5txxxxxxxxxxxxx"
-ALI_ACCESS_KEY_SECRET = "xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+# 下载模型
+mkdir -p pretrained_models
+huggingface-cli download --resume-download Soul-AILab/SoulX-Podcast-1.7B \
+  --local-dir pretrained_models/SoulX-Podcast-1.7B
 ```
 
 #### 5. 启动服务
 
+**方式一：使用启动脚本（推荐）**
 ```bash
-python3 api_server.py
+./start_soulx.sh
 ```
 
-服务启动后，会显示：
-```
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+**方式二：手动启动**
+```bash
+# 终端 1：启动 SoulX-Podcast API
+cd ~/projects/SoulX-Podcast
+source venv/bin/activate
+python run_api.py --model pretrained_models/SoulX-Podcast-1.7B --port 8000
+
+# 终端 2：启动 ai-podcaster
+cd ~/projects/ai-podcaster-SoulX-Edition
+source venv/bin/activate
+python3 api_server.py
 ```
 
 #### 6. 访问应用
 
-在浏览器中打开：
+打开浏览器访问：
 ```
-http://localhost:8000
-```
-
-### 方式二：Docker 部署（进阶）
-
-创建 `Dockerfile`：
-
-```dockerfile
-FROM python:3.9-slim
-
-# 安装 FFmpeg
-RUN apt-get update && apt-get install -y ffmpeg
-
-# 设置工作目录
-WORKDIR /app
-
-# 复制依赖文件
-COPY requirements.txt .
-
-# 安装 Python 依赖
-RUN pip install --no-cache-dir -r requirements.txt
-
-# 复制项目文件
-COPY . .
-
-# 暴露端口
-EXPOSE 8000
-
-# 启动服务
-CMD ["python3", "api_server.py"]
+http://localhost:8001/soulx
 ```
 
-构建和运行：
+## 📖 使用指南
 
-```bash
-# 构建镜像
-docker build -t ai-podcaster .
+### 步骤 1：声音克隆
 
-# 运行容器
-docker run -d -p 8000:8000 --name ai-podcaster ai-podcaster
+1. **选择声音槽位**：说话人 1-4
+2. **上传参考音频**：
+   - 格式：WAV/MP3/M4A
+   - 时长：5-30 秒
+   - 质量：清晰、无背景噪音
+3. **输入参考文本**：
+   - 准确对应音频内容
+   - 避免拼写错误
+4. **等待状态更新**：显示"✓ 准备就绪"
+5. **重复克隆**：可以克隆最多 4 个声音
+
+### 步骤 2：编辑脚本
+
+**格式：**
+```
+[S1] 欢迎收听本期的播客节目！
+[S2] 很高兴能在这里和大家聊天！
+[S1] 今天我们来聊聊人工智能的最新发展。
+[S2] 确实，最近AI技术发展非常快，<|laughter|> 感觉每天都有新东西！
 ```
 
-### 方式三：云服务部署
+**快捷操作：**
+- **📝 插入示例**：插入预设的示例脚本
+- **🗑️ 清空**：清空脚本内容
+- **📝 生成脚本模板**：自动创建开场脚本
 
-可以部署到支持 Python 的云平台：
+### 步骤 3：生成音频
 
-- **Vercel**：使用 Serverless Functions
-- **Railway**：一键部署 Docker 容器
-- **阿里云 ECS / 腾讯云 CVM**：VPS 部署
-- **AWS EC2 / Google Cloud**：云服务器部署
+1. **调整参数**（可选）：
+   - 随机种子：控制随机性
+   - 温度：0.6（推荐）
+   - Top-K：100（推荐）
+   - Top-P：0.9（推荐）
 
-## 📖 使用说明
+2. **点击生成**：`🎵 生成音频`
 
-### Web 界面使用
+3. **等待完成**：3-10 分钟（取决于对话长度）
 
-访问 `http://localhost:8000`，按照三个步骤操作：
+4. **播放和下载**：
+   - 在线播放生成的音频
+   - 点击下载保存到本地
 
-#### 步骤 1：输入内容
+## 🎯 技术架构
 
-1. 选择输入方式：
-   - **文本输入**：直接在文本框中输入内容
-   - **网址输入**：输入网址，点击"分析网址"
-   - **文档上传**：点击或拖拽上传 DOCX/PDF 文档
+### 系统组件
 
-2. 设置播客时长（3-30 分钟）
-3. 可选填写主题（留空则自动提取）
-
-4. 点击"✨ 生成脚本"
-
-#### 步骤 2：生成脚本
-
-1. 系统自动生成播客脚本
-2. 查看脚本内容，可直接编辑修改
-3. 点击"🎵 生成音频"
-
-#### 步骤 3：生成音频
-
-1. 等待音频生成完成
-2. 在线播放生成的音频
-3. 点击"⬇️ 下载音频"保存到本地
-
-### API 调用示例
-
-#### 生成脚本
-
-```bash
-curl -X POST http://localhost:8000/api/generate/script \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content": "人工智能的发展历史",
-    "input_type": "text",
-    "duration_minutes": 5,
-    "theme": "AI技术发展"
-  }'
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  SoulX Frontend │    │ ai-podcaster API │    │ SoulX-Podcast API│
+│  (HTML/CSS/JS) │    │  (FastAPI)       │    │  (PyTorch)      │
+└────────┬────────┘    └────────┬─────────┘    └────────┬─────────┘
+         │                     │                      │
+         │ HTTP                │ HTTP                │
+         └─────────────────────┴──────────────────────┘
+                            Port 8001               Port 8000
 ```
 
-#### 生成音频
+### 技术栈
 
-```bash
-curl -X POST http://localhost:8000/api/generate/audio \
-  -H "Content-Type: application/json" \
-  -d '{
-    "script": "主持人：今天我们来聊聊人工智能的历史...\n嘉宾：人工智能最早起源于20世纪50年代..."
-  }'
+**前端：**
+- HTML5 + CSS3 + JavaScript（纯静态）
+- 三栏响应式布局
+- FormData 文件上传
+
+**后端：**
+- FastAPI + Uvicorn
+- 静态文件服务
+- 代理转发到 SoulX-Podcast API
+
+**音频生成：**
+- SoulX-Podcast 1.7B 模型
+- PyTorch + MPS 加速
+- HuggingFace Transformers
+
+## 📊 性能参考
+
+**测试环境：**
+- 设备：Apple MacBook Air (M1/M2/M3)
+- 内存：16GB
+- 模型：SoulX-Podcast 1.7B
+
+**生成时间：**
+- 4 轮对话：约 6 分钟
+- 8 轮对话：约 12 分钟
+- 12 轮对话：约 18 分钟
+
+**音频质量：**
+- 采样率：24kHz
+- 格式：WAV（无损）
+- 文件大小：约 0.5-1.5 MB/分钟
+
+## 🆚 版本对比
+
+| 特性 | 标准版 | SoulX Edition |
+|------|--------|---------------|
+| 声音克隆 | ❌ 不支持 | ✅ 零样本克隆 |
+| 音频质量 | 流畅自然 | 高保真播客 |
+| 方言支持 | 标准普通话 | ✅ 多方言 |
+| 情感标记 | 有限 | ✅ 丰富 |
+| 网络依赖 | 需要（API） | ✅ 本地化 |
+| 使用成本 | 按量付费 | ✅ 完全免费 |
+| 数据隐私 | 上传云端 | ✅ 完全本地 |
+| 定制能力 | 有限 | ✅ 高度可定制 |
+
+## 📁 项目结构
+
 ```
-
-#### 下载音频
-
-```bash
-curl -O http://localhost:8000/api/audio/podcast_xxxxxxxx.mp3
-```
-
-## 🔧 开发指南
-
-### 本地开发
-
-```bash
-# 1. 克隆项目
-git clone https://github.com/taoyunudt/ai-podcaster.git
-cd ai-podcaster
-
-# 2. 安装依赖
-pip install -r requirements.txt
-
-# 3. 配置密钥
-cp config.example.py config.py
-# 编辑 config.py
-
-# 4. 启动开发服务器
-python3 api_server.py
-```
-
-### 添加新功能
-
-- **后端 API**：修改 `api_server.py`
-- **TTS 引擎**：修改 `tts_qwen3.py`
-- **脚本生成**：修改 `script_generator.py`
-- **前端界面**：修改 `static/` 下的文件
-- **工具函数**：添加到 `utils/` 目录
-
-### 代码风格
-
-项目遵循 PEP 8 Python 编码规范。
-
-### 测试
-
-```bash
-# 运行单元测试（如果存在）
-python3 -m pytest tests/
-
-# 测试 API 健康状态
-curl http://localhost:8000/health
+ai-podcaster-SoulX-Edition/
+├── static/                      # 前端静态文件
+│   ├── index_soulx.html        # SoulX Edition 主界面
+│   ├── css/
+│   │   └── style_soulx.css     # SoulX Edition 样式
+│   └── js/
+│       └── app_soulx.js         # SoulX Edition 逻辑
+├── api_server.py                # FastAPI 后端服务
+├── start_soulx.sh              # 一键启动脚本
+├── SOULX_GUIDE.md              # SoulX 使用指南
+├── INTEGRATION_REPORT.md        # 集成报告
+├── DEPLOYMENT_COMPLETE.md       # 部署完成报告
+├── requirements.txt             # Python 依赖
+├── config.py                   # 配置文件（标准版）
+├── config.example.py           # 配置文件示例
+├── generator.py                # 对话生成器（标准版）
+├── tts_qwen3.py               # 千问 TTS 引擎（标准版）
+├── merger_advanced.py          # 音频合并模块
+├── script_generator.py         # 播客脚本生成器
+└── README.md                  # 本文件
 ```
 
 ## 🛠️ 常见问题
 
-### 1. FFmpeg 未安装
+### Q: 声音克隆不成功
+**A:** 检查以下几点：
+- 参考音频是否清晰、无噪音
+- 参考文本是否准确对应音频内容
+- 音频文件格式是否支持（推荐 WAV）
+- 音频时长是否合适（5-30 秒）
 
-**错误信息**：
-```
-FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'
-```
+### Q: 生成时间过长
+**A:** 取决于：
+- 对话长度：减少对话轮数
+- 硬件性能：Apple Silicon 已优化
+- 参数设置：尝试更简单的参数
 
-**解决方案**：
+### Q: 音频质量不佳
+**A:** 尝试优化：
+- 提高参考音频质量
+- 准确对应参考文本
+- 调整温度参数
+- 尝试不同的随机种子
 
+### Q: SoulX-Podcast API 连接失败
+**A:** 检查：
+- SoulX-Podcast API 是否运行在端口 8000
+- 网络连接是否正常
+- 模型是否已下载完成
+
+## 📝 开发指南
+
+### 本地开发
 ```bash
-# macOS
-brew install ffmpeg
+# 1. 克隆项目
+git clone https://github.com/taoyunudt/ai-podcaster-SoulX-Edition.git
+cd ai-podcaster-SoulX-Edition
 
-# Ubuntu/Debian
-sudo apt update
-sudo apt install ffmpeg
+# 2. 安装依赖
+pip install -r requirements.txt
 
-# Windows
-# 从 https://ffmpeg.org/download.html 下载并安装
+# 3. 启动开发服务器
+python3 api_server.py
 ```
 
-### 2. API 密钥无效
+### 添加新功能
+- **前端**：修改 `static/` 下的文件
+- **后端 API**：修改 `api_server.py`
+- **集成 SoulX**：参考 `SOULX_GUIDE.md`
 
-**错误信息**：
-```
-HTTPError: 401 Unauthorized
-```
-
-**解决方案**：
-
-检查 `config.py` 中的 API 密钥是否正确配置：
-```python
-DASHSCOPE_API_KEY = "sk-xxxxx"  # 检查是否有效
-TTS_APPKEY = "xxxxx"  # 检查是否有效
-```
-
-### 3. 端口被占用
-
-**错误信息**：
-```
-OSError: [Errno 48] Address already in use
-```
-
-**解决方案**：
-
-```bash
-# 查找占用 8000 端口的进程
-lsof -ti:8000 | xargs kill -9
-
-# 或使用其他端口启动
-python3 -m uvicorn api_server:app --port 8080
-```
-
-### 4. 依赖安装失败
-
-**解决方案**：
-
-```bash
-# 升级 pip
-pip install --upgrade pip
-
-# 使用国内镜像源
-pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-```
-
-## 📝 技术栈
-
-- **后端框架**：FastAPI
-- **Web 服务器**：Uvicorn
-- **AI 模型**：通义千问 (DashScope API)
-- **TTS 引擎**：千问 TTS API
-- **音频处理**：FFmpeg、Pydub
-- **前端技术**：HTML5、CSS3、JavaScript（纯静态）
-- **文档处理**：python-docx、PyPDF2
-- **HTTP 客户端**：httpx
+### 代码风格
+项目遵循 PEP 8 Python 编码规范。
 
 ## 📄 许可证
 
@@ -454,28 +327,29 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 - **作者**：taoyunudt
 - **GitHub**：https://github.com/taoyunudt
-- **项目地址**：https://github.com/taoyunudt/ai-podcaster
+- **项目地址**：https://github.com/taoyunudt/ai-podcaster-SoulX-Edition
 
 ## 🙏 致谢
 
-- [通义千问](https://tongyi.aliyun.com/) - 提供强大的 AI 能力
+- [SoulX-Podcast](https://github.com/Soul-AILab/SoulX-Podcast) - 提供强大的 TTS 能力
 - [FastAPI](https://fastapi.tiangolo.com/) - 现代化的 Python Web 框架
 - [FFmpeg](https://ffmpeg.org/) - 强大的音频处理工具
 
 ## 📅 更新日志
 
-### v1.0.0 (2026-02-14)
+### v1.0.0 (2026-02-22)
 
 ✨ **初始版本发布**
 
-- ✨ 完整的 AI 播客生成功能
-- ✨ 支持文本/网址/文档三种输入方式
+- ✨ 完整的 SoulX-Podcast 集成
+- ✨ 零样本声音克隆功能（最多 4 个说话人）
+- ✨ 高保真音频生成（1.7B 模型）
 - ✨ 三栏响应式布局 Web 界面
-- ✨ 自动脚本生成
-- ✨ 高质量 TTS 语音合成
-- ✨ 智能音频合并
-- ✨ RESTful API 接口
-- ✨ 完整的文档和配置示例
+- ✨ 脚本编辑器（支持说话人标记和情感标记）
+- ✨ 丰富的生成参数调优
+- ✨ 完全本地化推理（无需 API 密钥）
+- ✨ 详细的文档和部署指南
+- ✨ 一键启动脚本
 
 ## 🌟 Star History
 
