@@ -99,9 +99,24 @@ async def root():
     return {"message": "AI 播客生成器 API"}
 
 
+@app.get("/soulx")
+async def soulx_root():
+    """SoulX Edition 前端页面"""
+    index_path = os.path.join(static_dir, "index_soulx.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"message": "SoulX Edition 前端未找到"}
+
+
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    return {
+        "status": "healthy",
+        "versions": {
+            "standard": "1.0.0",
+            "soulx": "1.0.0"
+        }
+    }
 
 
 class URLRequest(BaseModel):
@@ -285,4 +300,4 @@ async def get_audio(filename: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 播客生成器 - SoulX Edition</title>
+    <link rel="stylesheet" href="/static/css/style_soulx.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎙️ AI 播客生成器 - SoulX Edition</h1>
+            <p>声音克隆 → 生成脚本 → 还原生音频</p>
+        </header>
+
+        <div class="three-columns">
+            <!-- 左栏：声音克隆 -->
+            <div class="column" id="voice-section">
+                <div class="column-header">
+                    <h2>🎤 声音克隆</h2>
+                    <span class="step-badge">步骤 1</span>
+                </div>
+
+                <div class="column-content">
+                    <p class="section-hint">
+                        上传参考音频和对应文本，克隆说话人声音
+                    </p>
+
+                    <!-- 声音槽位 1-4 -->
+                    <div class="voice-slots">
+                        <div class="voice-slot" id="voice-slot-1">
+                            <div class="slot-header">
+                                <span class="slot-label">👩 说话人 1</span>
+                                <button class="btn-mini" onclick="clearVoiceSlot(1)">✕</button>
+                            </div>
+                            <div class="slot-content">
+                                <input
+                                    type="file"
+                                    id="voice1-audio"
+                                    accept="audio/*"
+                                    class="voice-input"
+                                    onchange="handleVoiceUpload(1, this)">
+                                <input
+                                    type="text"
+                                    id="voice1-text"
+                                    class="voice-text-input"
+                                    placeholder="输入参考文本..."
+                                    oninput="updateVoiceState(1)">
+                                <div class="voice-preview" id="voice1-preview" style="display: none;">
+                                    <audio id="voice1-player" controls></audio>
+                                </div>
+                                <div class="slot-status" id="voice1-status">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">等待上传</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="voice-slot" id="voice-slot-2">
+                            <div class="slot-header">
+                                <span class="slot-label">👨 说话人 2</span>
+                                <button class="btn-mini" onclick="clearVoiceSlot(2)">✕</button>
+                            </div>
+                            <div class="slot-content">
+                                <input
+                                    type="file"
+                                    id="voice2-audio"
+                                    accept="audio/*"
+                                    class="voice-input"
+                                    onchange="handleVoiceUpload(2, this)">
+                                <input
+                                    type="text"
+                                    id="voice2-text"
+                                    class="voice-text-input"
+                                    placeholder="输入参考文本..."
+                                    oninput="updateVoiceState(2)">
+                                <div class="voice-preview" id="voice2-preview" style="display: none;">
+                                    <audio id="voice2-player" controls></audio>
+                                </div>
+                                <div class="slot-status" id="voice2-status">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">等待上传</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="voice-slot" id="voice-slot-3">
+                            <div class="slot-header">
+                                <span class="slot-label">👩 说话人 3</span>
+                                <button class="btn-mini" onclick="clearVoiceSlot(3)">✕</button>
+                            </div>
+                            <div class="slot-content">
+                                <input
+                                    type="file"
+                                    id="voice3-audio"
+                                    accept="audio/*"
+                                    class="voice-input"
+                                    onchange="handleVoiceUpload(3, this)">
+                                <input
+                                    type="text"
+                                    id="voice3-text"
+                                    class="voice-text-input"
+                                    placeholder="输入参考文本..."
+                                    oninput="updateVoiceState(3)">
+                                <div class="voice-preview" id="voice3-preview" style="display: none;">
+                                    <audio id="voice3-player" controls></audio>
+                                </div>
+                                <div class="slot-status" id="voice3-status">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">等待上传</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="voice-slot" id="voice-slot-4">
+                            <div class="slot-header">
+                                <span class="slot-label">👨 说话人 4</span>
+                                <button class="btn-mini" onclick="clearVoiceSlot(4)">✕</button>
+                            </div>
+                            <div class="slot-content">
+                                <input
+                                    type="file"
+                                    id="voice4-audio"
+                                    accept="audio/*"
+                                    class="voice-input"
+                                    onchange="handleVoiceUpload(4, this)">
+                                <input
+                                    type="text"
+                                    id="voice4-text"
+                                    class="voice-text-input"
+                                    placeholder="输入参考文本..."
+                                    oninput="updateVoiceState(4)">
+                                <div class="voice-preview" id="voice4-preview" style="display: none;">
+                                    <audio id="voice4-player" controls></audio>
+                                </div>
+                                <div class="slot-status" id="voice4-status">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">等待上传</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="voice-actions">
+                        <button class="btn-primary" id="create-script-btn" onclick="createScript()">
+                            📝 生成脚本模板
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中栏：生成脚本 -->
+            <div class="column" id="script-section">
+                <div class="column-header">
+                    <h2>📋 播客脚本</h2>
+                    <span class="step-badge">步骤 2</span>
+                </div>
+
+                <div class="column-content">
+                    <p class="section-hint">
+                        编辑对话脚本，使用 [S1]、[S2] 标记说话人
+                    </p>
+
+                    <div class="script-editor">
+                        <textarea
+                            id="script-editor-textarea"
+                            placeholder="[S1] 欢迎收听本期的播客节目！&#10;[S2] 很高兴能在这里和大家聊天！&#10;&#10;请使用 [S1] 到 [S4] 标记不同的说话人，支持表情符号：&lt;|laughter|&gt; 笑声，&lt;|sigh|&gt; 叹气"
+                            rows="15"></textarea>
+                    </div>
+
+                    <div class="script-tools">
+                        <button class="btn-secondary" onclick="insertExample()">
+                            📝 插入示例
+                        </button>
+                        <button class="btn-secondary" onclick="clearScript()">
+                            🗑️ 清空
+                        </button>
+                    </div>
+
+                    <div class="voice-summary" id="voice-summary">
+                        <div class="summary-title">已克隆的声音：</div>
+                        <div class="summary-list" id="voice-summary-list">
+                            <span class="empty-hint">暂无声音</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右栏：生成音频 -->
+            <div class="column" id="audio-section">
+                <div class="column-header">
+                    <h2>🎵 还原生音频</h2>
+                    <span class="step-badge">步骤 3</span>
+                </div>
+
+                <div class="column-content">
+                    <p class="section-hint">
+                        使用克隆的声音生成高质量播客音频
+                    </p>
+
+                    <!-- 生成参数 -->
+                    <div class="generation-params">
+                        <div class="param-group">
+                            <label>随机种子:</label>
+                            <input
+                                type="number"
+                                id="seed-input"
+                                value="1988"
+                                min="1"
+                                max="9999">
+                        </div>
+                        <div class="param-group">
+                            <label>温度 (0.1-2.0):</label>
+                            <input
+                                type="number"
+                                id="temperature-input"
+                                value="0.6"
+                                min="0.1"
+                                max="2.0"
+                                step="0.1">
+                        </div>
+                        <div class="param-group">
+                            <label>Top-K (1-500):</label>
+                            <input
+                                type="number"
+                                id="topk-input"
+                                value="100"
+                                min="1"
+                                max="500">
+                        </div>
+                        <div class="param-group">
+                            <label>Top-P (0.0-1.0):</label>
+                            <input
+                                type="number"
+                                id="topp-input"
+                                value="0.9"
+                                min="0.0"
+                                max="1.0"
+                                step="0.1">
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" id="generate-audio-btn" onclick="generateAudio()">
+                        🎵 生成音频
+                    </button>
+
+                    <!-- 生成结果 -->
+                    <div id="audio-result" style="display: none;">
+                        <div class="result-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">状态:</span>
+                                <span id="audio-status" class="meta-value">✅ 完成</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">文件大小:</span>
+                                <span id="audio-size" class="meta-value"></span>
+                            </div>
+                        </div>
+
+                        <div class="audio-player">
+                            <audio id="audio-element" controls>
+                                您的浏览器不支持音频播放
+                            </audio>
+                        </div>
+
+                        <div class="audio-actions">
+                            <button class="btn-primary" id="download-audio-btn" onclick="downloadAudio()">
+                                ⬇️ 下载音频
+                            </button>
+                            <button class="btn-secondary" onclick="regenerateAudio()">
+                                🔄 重新生成
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 加载状态 -->
+                    <div id="audio-loading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p id="audio-progress-text">正在生成音频，请稍候...</p>
+                        <p class="loading-hint">这可能需要 3-10 分钟，取决于对话长度</p>
+                    </div>
+
+                    <!-- 空状态 -->
+                    <div id="audio-empty" class="empty-state">
+                        <div class="empty-icon">🎵</div>
+                        <p>完成声音克隆和脚本编辑后点击"生成音频"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div id="toast" class="toast"></div>
+
+    <script src="/static/js/app_soulx.js"></script>
+</body>
+</html>
